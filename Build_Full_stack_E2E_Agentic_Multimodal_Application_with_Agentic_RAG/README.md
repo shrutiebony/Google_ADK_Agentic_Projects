@@ -1,4 +1,4 @@
-### Personal Expense Assistant: Multimodal Receipt Intelligence with Gemini 2.5
+### Personal Expense Assistant: Multimodal Receipt Intelligence with Gemini 2.5  
 
 This repository contains a fully implemented multimodal expense-tracking system powered by Google's Agent Development Kit (ADK) and Gemini 2.5.
 Users can upload receipt images, query their expense history, and retrieve contextual insights through a conversational interface.
@@ -6,7 +6,7 @@ All data—including metadata, receipts, and vector embeddings—is stored and s
 
 This project demonstrates how to build and deploy a complete agentic application using Gemini, ADK, Firestore, FastAPI, Gradio, and Cloud Run.
 
-#### 1. Project Summary
+#### 1\. Project Summary
 
 The system provides an end-to-end workflow for expense understanding:
 
@@ -24,7 +24,7 @@ Support for contextual follow-ups and chained queries
 
 The backend logic is built using a custom ADK agent, and the deployment bundles both frontend and backend in a single container.
 
-#### 2. System Architecture
+#### 2\. System Architecture
 
 The application consists of three cooperating components:
 
@@ -56,7 +56,8 @@ Query + response display
 
 All components are deployed together on Cloud Run, using Supervisord as a process manager.
 
-#### 3. Technology Stack
+#### 3\. Technology Stack
+
 Component	Technology
 LLM Reasoning	Gemini 2.5 Flash (Vertex AI)
 Agent Platform	Google ADK v1.18
@@ -67,7 +68,7 @@ Frontend	Gradio 5.x
 Deployment	Cloud Run + Docker + Supervisord
 Configuration	Pydantic Settings + YAML
 
-#### 4. Core Features
+#### 4\. Core Features
 
 Multimodal receipt ingestion (image → structured fields)
 
@@ -83,7 +84,7 @@ Cloud-native deployment with minimal setup
 
 Unified full-stack prototype combining ADK + FastAPI + Gradio
 
-#### 5. Development Workflow
+#### 5\. Development Workflow
 
 Initialize GCP project
 
@@ -128,3 +129,4 @@ Upload receipts
 Query expenses by date, store, or concept
 
 Retrieve stored receipt images
+
