@@ -3,4 +3,5 @@ AI systems are evolving fast, and one of the most exciting shifts happening righ
 ##### Paper: https://arxiv.org/pdf/2404.11584
 ##### Medium Article: https://medium.com/@shrutiebony/agents-are-the-next-big-shift-in-ai-just-b229e9a2607d?postPublishedType=initial
 ##### Slide Deck: https://docs.google.com/presentation/d/1ZeZPXSdOqODIPVtWBIkPsfri_sfw9Mr1-kLX5P6PD-w/edit?usp=sharing
+##### Video: https://youtu.be/u56521d-Nug 
 
