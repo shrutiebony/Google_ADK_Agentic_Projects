@@ -1,75 +1,131 @@
-### Purchasing Concierge – Agent-to-Agent (A2A) Cloud Run Demo
+# Codelab 3 — Purchasing Concierge (A2A Action Engine)
 
-This project demonstrates how to build a **Purchasing Concierge AI agent** that communicates with remote **Burger** and **Pizza Seller Agents** using the **Agent2Agent (A2A)** protocol on **Google Cloud**.
-It showcases how multiple agents — each powered by different frameworks — can collaborate seamlessly using standardized A2A communication.
+A **Purchasing Concierge** AI agent that communicates with remote **Burger** and **Pizza Seller Agents** using the **Agent-to-Agent (A2A)** protocol on Google Cloud. Demonstrates how agents built with different frameworks can collaborate seamlessly.
 
+## What It Does
 
-##### Overview
+The user chats with a purchasing concierge (via Gradio UI). The concierge discovers remote seller agents, delegates menu queries and order placement, and merges responses into a natural conversation.
 
-The system consists of three main agents:
+**Example:**
 
-**Purchasing Concierge** – The main AI assistant (A2A Client) that interacts with the user and delegates tasks.
-**Burger Seller Agent** – An A2A Server built using the CrewAI framework that manages burger-related requests.
-**Pizza Seller Agent** – An A2A Server built using the LangGraph framework that handles pizza orders.
+> **User:** "Show me burger and pizza menu."
+> **Agent:** Displays menus from both seller agents.
+>
+> **User:** "I want to order one BBQ chicken pizza and one spicy cajun burger."
+> **Agent:** Sends A2A tasks to both sellers and confirms both orders.
 
-The Concierge is deployed on **Vertex AI Agent Engine**, while the seller agents run on **Cloud Run**.
-All agents communicate via A2A messages using standardized JSON structures.
+## Architecture
 
----
+```
+User → Gradio UI (purchasing_concierge_ui.py)
+         → Vertex AI Agent Engine (PurchasingAgent / gemini-2.5-flash-lite)
+              → send_task tool → A2A → pizza_seller_agent (LangGraph, :10000)
+                                   → burger_seller_agent (CrewAI, :10001)
+```
 
-##### Architecture
+## Components
 
-1. The user interacts with the **Purchasing Concierge** through a Gradio web app.
-2. The Concierge discovers available remote agents using their public A2A cards.
-3. It delegates specific tasks (e.g., fetching menus or placing orders) to the Burger and Pizza agents.
-4. Each seller agent responds with structured results (menu, prices, confirmations).
-5. The Concierge merges these responses and presents them back to the user naturally.
+| Component | Technology | Role |
+|-----------|-----------|------|
+| **Purchasing Concierge** | Google ADK + Vertex AI Agent Engine | Orchestrator and A2A client |
+| **Burger Seller Agent** | CrewAI | A2A server for burger orders |
+| **Pizza Seller Agent** | LangGraph | A2A server for pizza orders |
+| **Frontend UI** | Gradio | Chat-based user interface |
+| **Hosting** | Cloud Run + Agent Engine | Serverless infrastructure |
 
-This architecture highlights the **A2A protocol’s** ability to connect independent AI agents across different services, frameworks, and platforms.
+## Folder Structure
 
----
+```
+Codelab_lab_3/
+├── purchasing_concierge/              # Orchestrator agent
+│   ├── agent.py                       # Wires PurchasingAgent with seller URLs
+│   ├── purchasing_agent.py            # Core orchestrator logic
+│   └── remote_agent_connection.py     # A2A client wrapper
+├── remote_seller_agents/
+│   ├── burger_agent/                  # CrewAI A2A server
+│   └── pizza_agent/                   # LangGraph A2A server
+├── purchasing_concierge_ui.py         # Gradio chat UI
+└── deploy_to_agent_engine.py          # Agent Engine deployment script
+```
 
-##### Key Technologies
+## End-to-End Workflow
 
-| Component            | Technology                          | Purpose                                |
-| -------------------- | ----------------------------------- | -------------------------------------- |
-| Purchasing Concierge | Google ADK + Vertex AI Agent Engine | Orchestrator and A2A Client            |
-| Burger Seller Agent  | CrewAI Framework                    | A2A Server for burgers                 |
-| Pizza Seller Agent   | LangGraph Framework                 | A2A Server for pizzas                  |
-| Communication Layer  | A2A SDK                             | Handles message passing between agents |
-| Frontend UI          | Gradio                              | Chat-based user interface              |
-| Hosting & Deployment | Google Cloud Run + Cloud Storage    | Serverless infrastructure              |
+### 1. GCP Setup
 
----
+Enable billing, Vertex AI, and Cloud Run. Authenticate:
 
-##### Workflow Summary
+```bash
+gcloud auth application-default login
+```
 
-1. Set up a **Google Cloud Project** and enable billing.
-2. Clone the starter repository and install dependencies using `uv`.
-3. Deploy the **Burger Agent** and **Pizza Agent** on **Cloud Run**.
-4. Add the **HOST_OVERRIDE** environment variable to each Cloud Run service so the agents advertise their correct public URLs.
-5. Verify their A2A cards by visiting the `/.well-known/agent.json` routes.
-6. Configure and deploy the **Purchasing Concierge** to **Vertex AI Agent Engine**.
-7. Launch the **Gradio** web interface to start interacting.
-8. Chat naturally with the Concierge — it will contact both seller agents to fulfill your request.
+### 2. Deploy Seller Agents to Cloud Run
 
----
+```bash
+cd remote_seller_agents/pizza_agent
+gcloud run deploy pizza-agent --source . --region us-central1 --allow-unauthenticated
 
-##### Example Conversation
+cd ../burger_agent
+gcloud run deploy burger-agent --source . --region us-central1 --allow-unauthenticated
+```
 
-* **User:** “Show me burger and pizza menu.”
-  **Agent:** Displays menus from both seller agents.
+Set `HOST_OVERRIDE` on each Cloud Run service to its public URL.
 
-* **User:** “I want to order one BBQ chicken pizza and one spicy cajun burger.”
-  **Agent:** Sends two A2A tasks (one to each seller) and confirms both orders.
+### 3. Verify Agent Cards
 
-This demonstrates seamless collaboration between multiple agents in real time.
+Visit `/.well-known/agent.json` on each Cloud Run service URL.
 
----
+### 4. Configure the Concierge
 
-##### Cleanup After Testing
+Copy and edit the environment file:
 
-To prevent unwanted costs:
+```bash
+cd purchasing_concierge
+cp .env.example .env
+```
 
-* Delete deployed services from **Cloud Run** and **Vertex AI Agent Engine**, or
-* Delete the entire Google Cloud project when finished.
+```env
+PIZZA_SELLER_AGENT_URL=https://pizza-agent-xxxxx.run.app
+BURGER_SELLER_AGENT_URL=https://burger-agent-xxxxx.run.app
+GOOGLE_GENAI_USE_VERTEXAI=TRUE
+GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_CLOUD_LOCATION=us-central1
+STAGING_BUCKET=gs://your-staging-bucket
+```
+
+### 5. Deploy the Concierge
+
+```bash
+cd Codelab_lab_3
+python deploy_to_agent_engine.py
+# Note the printed resource_name
+```
+
+### 6. Launch the Gradio UI
+
+```bash
+export AGENT_ENGINE_RESOURCE_NAME=<resource from step 5>
+python purchasing_concierge_ui.py
+# UI at http://0.0.0.0:8080
+```
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `PIZZA_SELLER_AGENT_URL` | Pizza A2A server base URL |
+| `BURGER_SELLER_AGENT_URL` | Burger A2A server base URL |
+| `GOOGLE_GENAI_USE_VERTEXAI` | Use Vertex for Gemini |
+| `GOOGLE_CLOUD_PROJECT` | GCP project ID |
+| `GOOGLE_CLOUD_LOCATION` | GCP region |
+| `STAGING_BUCKET` | GCS staging bucket for Agent Engine |
+| `AGENT_ENGINE_RESOURCE_NAME` | Deployed Agent Engine resource (for UI) |
+
+## Cleanup
+
+To prevent unwanted costs, delete Cloud Run services and Agent Engine deployments when finished, or delete the entire GCP project.
+
+## Related READMEs
+
+- [purchasing_concierge/](./purchasing_concierge/README.md) — Orchestrator agent details
+- [burger_agent/](./remote_seller_agents/burger_agent/README.md) — CrewAI burger seller
+- [pizza_agent/](./remote_seller_agents/pizza_agent/README.md) — LangGraph pizza seller

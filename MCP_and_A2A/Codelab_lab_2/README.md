@@ -1,62 +1,112 @@
-# 🤖 Codelab 1 – Create Multi-Agent System with ADK and A2A Protocol
+# Codelab 2 — Multi-Agent Image Scoring System
 
-📖 **Reference:** [Google Codelab – Create Multi-Agents with ADK & A2A](https://codelabs.developers.google.com/codelabs/create-multi-agents-adk-a2a#0)
+A multi-agent image generation and scoring pipeline built with **Google ADK** and the **A2A Protocol**. Generates Imagen3 prompts from news text, creates images, scores them against a content policy, and loops until the score threshold is met or max iterations are reached.
 
----
+Based on: [Google Codelab – Create Multi-Agents with ADK & A2A](https://codelabs.developers.google.com/codelabs/create-multi-agents-adk-a2a)
 
-## 📘 Overview
+## What It Does
 
-This codelab demonstrates how to create and deploy a **multi-agent system** using Google’s **Agent Development Kit (ADK)** and **Agent-to-Agent (A2A)** protocol.
-The goal is to build multiple agents, deploy them to the **Agent Engine**, and establish communication between them using **A2A messaging**.
+Given a text prompt (e.g., "Create image of a cat"):
 
----
+1. **Prompt Agent** — Builds an Imagen3 prompt from news text and `policy.json` rules
+2. **Imagen Agent** — Generates an image via Imagen 3 on Vertex AI
+3. **Scoring Agent** — Scores the image against the content policy
+4. **Checker Agent** — Decides whether to loop again or stop
 
-## 🎯 Objectives
+The system can run locally via ADK, deploy to **Vertex AI Agent Engine**, or expose as a **remote A2A agent**.
 
-* Install and configure the **ADK** environment.
-* Create and deploy multiple agents to the **Agent Engine**.
-* Enable **A2A communication** between agents.
-* Demonstrate message exchange using the **A2A protocol**.
+## Architecture
 
----
+```
+LoopAgent (image_scoring)
+├── SequentialAgent (image_generation_scoring_agent)
+│   ├── prompt_agent      → builds Imagen prompt from policy.json
+│   ├── imagen_agent      → generates image via Imagen 3
+│   └── scoring_agent     → scores image; sets total_score
+└── checker_agent         → check_tool_condition → escalate when done
+```
 
-### **Prerequisites**
+## Folder Structure
 
-* Python 3.10+
-* Node.js (optional, for web UI integration)
-* Google **Agent Engine** account
-* Installed **ADK CLI** and **A2A SDK**
-* Stable internet connection
+```
+Codelab_lab_2/
+├── Bicycle.png, Waterfall.png         # Sample images
+└── multi_agentic_system/
+    ├── image_scoring/                 # Core agent package
+    ├── image_scoring_adk_a2a_server/  # Remote A2A client wrapper
+    └── testclient/                    # Agent Engine remote test
+```
 
----
+See [multi_agentic_system/README.md](./multi_agentic_system/README.md) for detailed package documentation.
 
-## 🧠 Key Concepts
+## Key Components
 
-* **ADK (Agent Development Kit):** Toolset for creating and managing agents.
-* **Agent Engine:** Cloud environment where agents are deployed and executed.
-* **A2A Protocol:** Enables secure, structured message exchange between agents.
-* **MCP (Message Communication Protocol):** Defines message structure and routing behavior.
+| Component | Location | Description |
+|-----------|----------|-------------|
+| Core agent | `multi_agentic_system/image_scoring/` | Full agent pipeline with sub-agents and tools |
+| A2A server | `multi_agentic_system/image_scoring_adk_a2a_server/` | Wraps agent as remote A2A service |
+| Test client | `multi_agentic_system/testclient/` | Tests deployed Agent Engine instance |
 
----
+## Loop Logic
 
-## 🎥 Video Walkthrough
+- `MAX_ITERATIONS` (default: 1) and `SCORE_THRESHOLD` (default: 45)
+- `check_tool_condition` reads `total_score` from session state
+- Sets `escalate=True` when score exceeds threshold or max iterations reached
 
-🎬 **YouTube Walkthrough:** [Click here to watch the demo](https://youtu.be/oYPckTgBT0w)
+## Prerequisites
 
-The walkthrough demonstrates:
+- GCP project with Vertex AI enabled
+- Python 3.10+
+- Poetry or pip
 
-1. ADK environment setup
-2. Agent creation and configuration
-3. Deployment in the Agent Engine
-4. A2A message exchange between agents
+## Quick Start
 
----
+```bash
+cd multi_agentic_system
+poetry install    # or: pip install -r requirements.txt
+gcloud auth application-default login
 
-## 🧩 Learnings
+# Set environment variables (see image_scoring/config.py)
+export GCS_BUCKET_NAME=your-bucket    # optional
+export SCORE_THRESHOLD=45
+export MAX_ITERATIONS=1
 
-* Setting up a complete ADK-based environment
-* Understanding the internal flow of the A2A protocol
-* Deploying, managing, and debugging multi-agent systems
-* Building a foundation for advanced agent collaboration projects
+# Run via ADK dev UI
+adk web
 
-Would you like me to now prepare the **Codelab 2 README (Currency Agent)** next — following the same style with a YouTube walkthrough section at the end?
+# Or run directly
+adk run image_scoring
+```
+
+## Deployment to Agent Engine
+
+```bash
+cd multi_agentic_system/image_scoring
+poetry build    # creates dist/image_scoring-0.1.0-py3-none-any.whl
+python deploy.py
+```
+
+Edit hardcoded values in `deploy.py` before deploying:
+- `PROJECT_ID`
+- `LOCATION`
+- `STAGING_BUCKET`
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GCS_BUCKET_NAME` | — | Optional GCS upload for generated images |
+| `SCORE_THRESHOLD` | `45` | Minimum acceptable score |
+| `MAX_ITERATIONS` | `1` | Max regeneration loops |
+| `IMAGEN_MODEL` | `imagen-3.0-generate-002` | Image generation model |
+| `GENAI_MODEL` | `gemini-2.0-flash` | LLM for prompt/scoring agents |
+
+## Video Walkthrough
+
+[YouTube: Multi-Agent ADK & A2A Demo](https://youtu.be/oYPckTgBT0w)
+
+## References
+
+- [Google ADK Documentation](https://google.github.io/adk-docs/)
+- [Create Multi-Agents Codelab](https://codelabs.developers.google.com/codelabs/create-multi-agents-adk-a2a)
+- [Instavibe ADK Multi-Agents](https://codelabs.developers.google.com/instavibe-adk-multi-agents/instructions)

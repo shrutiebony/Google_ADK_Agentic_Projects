@@ -1,131 +1,77 @@
-### Google ADK Intelligent Agents – End-to-End Implementations
+# Building End-to-End Google ADK Agent Applications
 
-This repository contains five fully developed intelligent agents built using the Google Agent Development Kit (ADK) and the Gemini ecosystem.
-Each agent demonstrates a real-world workflow, integrates advanced tools, and is implemented from start to finish using Google Cloud and MCP.
+Four standalone intelligent agent projects built with the Google Gemini ecosystem. Each subfolder demonstrates a different agent pattern — from prompt-driven research pipelines to full Google ADK multi-agent orchestration.
 
-##### Overview
+## Projects
 
-This collection showcases practical ADK applications designed to help developers understand how to build, orchestrate, and deploy AI-driven agents.
-Every project includes:
+| # | Folder | Description |
+|---|--------|-------------|
+| 1 | [Deep Research Agent for Lead Generation](./1.Deep_Research_Agent_For_Lead_Generation/) | Multi-step B2B lead research with CSV/JSON export |
+| 2 | [Advanced Tool Agent Using Gemini CLI](./2.Advanced_Tool_Agent_Using_Gemini_CLI/) | Function-calling agent with Gemini CLI tools |
+| 3 | [MCP Tools Agent for Bug Assistance](./3.MCP_Tools_Agent_For_Bug_Assistance/) | Code analysis and bug detection assistant |
+| 4 | [Production Quality Code Review Assistant](./4.Production_Quality_Code_Review_Assistant/) | Multi-agent code review and fix pipeline (ADK) |
 
-###### Full source code
+## Tech Stack
 
-###### ADK pipeline configurations
+- **Google Gemini** via Vertex AI (`google-genai` SDK)
+- **Google ADK** (project 4 only)
+- **Python 3.10+**
+- **MCP-style tool declarations** (projects 2–3)
 
-Tool integration logic (MCP, Gemini CLI, AlloyDB)
+## Shared Prerequisites
 
-Screenshots, logs, and sample outputs
+1. A Google Cloud project with **Vertex AI API** enabled
+2. Application Default Credentials:
+   ```bash
+   gcloud auth application-default login
+   ```
+3. A Python virtual environment:
+   ```bash
+   python -m venv venv
+   venv\Scripts\activate        # Windows
+   source venv/bin/activate     # macOS/Linux
+   ```
 
-###### A dedicated walkthrough video
+## Shared Environment Variables
 
-All implementations are based on Google Codelabs, Google Cloud blog samples, and real ADK reference projects.
+Most projects use these variables (set in a `.env` file in each subfolder):
 
-##### Projects Included
-###### 1. Deep Research Lead Generation Agent
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GOOGLE_CLOUD_PROJECT` | Yes | — | GCP project ID |
+| `GOOGLE_CLOUD_LOCATION` | No | `us-central1` | Vertex AI region |
+| `MODEL_NAME` | No | `gemini-2.5-flash-exp` | Gemini model ID |
 
-Automates multi-step research using ADK pipelines.
-Performs data extraction, insight generation, ranking, enrichment, and structured report creation.
+## Getting Started
 
-###### 2. Advanced Tool Agent (Gemini CLI Integrated)
+Each subfolder is self-contained with its own source code and `requirements.txt`. Navigate into the project you want to run and follow its README:
 
-Shows how to expose the Gemini CLI as an ADK tool.
-Useful for executing command-line tasks through a reasoning agent.
+```bash
+cd 1.Deep_Research_Agent_For_Lead_Generation
+pip install -r requirements.txt
+python research_agent.py
+```
 
-###### 3. MCP Tools Bug Assistance Agent
+## Architecture Overview
 
-A debugging assistant capable of analyzing logs, reading files through MCP, detecting issues, and suggesting actionable fixes.
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Projects 1–3: google-genai + Vertex AI function calling   │
+│  Project 4:    google-adk multi-agent pipelines              │
+└─────────────────────────────────────────────────────────────┘
+         │                    │                    │
+         ▼                    ▼                    ▼
+   Lead Research        Tool Agent           Bug Assistant
+   (prompt pipeline)    (CLI tools)          (MCP-style tools)
+                                                    │
+                                                    ▼
+                                          Code Review Assistant
+                                          (SequentialAgent +
+                                           LoopAgent pipelines)
+```
 
-###### 4. Code Review Assistant
+## References
 
-Production-grade reviewer that evaluates code for structure, clarity, correctness, and engineering best practices.
-Implements structured suggestions and multi-step evaluation.
-
-###### 5. E-Commerce Agent (ADK + MCP + AlloyDB)
-
-A conversational shopping assistant that retrieves product data using AlloyDB + MCP and responds to user queries using Gemini.
-
-Repository Structure
-/
-├── agent_lead_generation/
-├── agent_gemini_cli_tool/
-├── agent_mcp_bug_assistant/
-├── agent_code_review/
-├── agent_ecommerce/
-├── video_walkthrough/
-└── README.md
-
-
-##### Each project directory includes:
-
-src/ — Main logic
-
-config/ — ADK / tool configuration
-
-assets/ — Screenshots, logs, examples
-
-README.md — Setup + usage instructions
-
-.env.example — Required environment variables
-
-##### Tech Stack
-
-The agents in this repository utilize:
-
-Google Agent Development Kit (ADK)
-
-Gemini models (2.0 Flash / Pro / Experimental)
-
-Google Cloud Run
-
-MCP Tools
-
-Gemini CLI
-
-AlloyDB
-
-Python 3.10+
-
-##### Streamlit for optional UI demos
-
-Setup & Installation
-###### 1. Clone the repository
-git clone <your-repo-url>
-cd <repo>
-
-###### 2. Create a virtual environment
-python3 -m venv venv
-source venv/bin/activate
-
-###### 3. Install dependencies
-
-Each agent includes its own requirements.txt file.
-
-###### 4. Configure environment variables
-
-Follow each agent’s README.md for your ADK, Gemini, and Google Cloud settings.
-
-###### 5. Run or deploy
-
-Agents can be run locally or deployed to Cloud Run using the included build/deploy scripts.
-
-##### Execution Flow
-
-Although each project differs, the general workflow is:
-
-Initialize ADK
-
-Load and register tools
-
-Run the pipeline
-
-Inspect logs and outputs
-
-Validate tool interactions
-
-Deploy for production use (optional)
-
-Video Walkthroughs
-
-All demonstration videos are located under:
-
-
+- [Google ADK Documentation](https://google.github.io/adk-docs/)
+- [Tools Make an Agent (Google Cloud Blog)](https://cloud.google.com/blog/topics/developers-practitioners/tools-make-an-agent-from-zero-to-assistant-with-adk)
+- [Vertex AI Gemini](https://cloud.google.com/vertex-ai/generative-ai/docs)

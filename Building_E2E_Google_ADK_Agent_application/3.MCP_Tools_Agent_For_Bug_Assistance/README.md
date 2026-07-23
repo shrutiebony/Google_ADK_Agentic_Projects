@@ -1,168 +1,126 @@
-# 🐞 Agent C: MCP Tools-based Bug Assistant
+# MCP Tools Agent for Bug Assistance
+
+An intelligent debugging assistant that analyzes source code using Gemini function calling with MCP-style tool declarations. It detects bugs, assigns severity levels, suggests fixes, and exports structured JSON reports.
 
 Based on: [Tools Make an Agent from Zero to Assistant with ADK](https://cloud.google.com/blog/topics/developers-practitioners/tools-make-an-agent-from-zero-to-assistant-with-adk)
 
----
+## What It Does
 
-## 🧠 Overview
+1. Reads source files (`.py`, `.js`, `.java`)
+2. Sends code to Gemini with registered analysis tools
+3. Executes tool calls locally (syntax analysis, bug pattern detection, fix generation)
+4. Produces a natural-language analysis and a JSON bug report
 
-This agent leverages **Model Context Protocol (MCP) tools** to provide intelligent, automated **bug analysis and fixing**.  
-It can scan source code, identify potential issues, suggest fixes, and even generate and apply patches — all within a configurable developer workflow.
+## Tools
 
----
+| Tool | Description |
+|------|-------------|
+| `analyze_code_syntax` | Parses Python code with `ast` for syntax and structural issues |
+| `detect_common_bugs` | Pattern matching for exec/eval, password logging, missing except blocks, TODOs |
+| `generate_fix` | Template-based fix suggestions for identified bugs |
 
-## 🎥 Video Walkthrough
+> **Note:** Tools are implemented as Gemini `FunctionDeclaration`s executed locally — not via a separate MCP server process.
 
-📺 Watch the full step-by-step walkthrough of this project on YouTube:  
-👉 [**MCP Bug Assistant**](https://youtu.be/4bjq91TVp-s)
+## Key Files
 
-**What you'll learn in the video:**
-- How MCP tools power contextual debugging  
-- Setting up and running the agent  
-- Performing automated bug analysis and patching  
-- Integrating the assistant into a CI/CD workflow  
+| File | Description |
+|------|-------------|
+| `bug_assistant.py` | Main app — `MCPBugAssistant` class and CLI |
+| `sample_buggy_code.py` | Intentionally buggy sample for testing |
+| `test_simple.py` | Creates a temp file, runs analysis, prints results |
+| `demo_script.md` | Video demo walkthrough script |
+| `bug_report.json` | Pre-generated sample report |
 
----
+## Requirements
 
-## ⚙️ Features
-
-- 🔍 **Code analysis** powered by MCP tools  
-- 🧩 **Bug detection and classification** with severity levels  
-- 🪄 **Automated fix suggestions** with explanations  
-- 🧵 **Patch generation & application** for one-click fixes  
-- 🔄 **Integration with version control systems** (Git-ready)
-
----
-
-## 🛠️ Setup
-
-### 1️⃣ Install Dependencies
-```bash
-cd agent-c-mcp-bug-assistant
-pip install -r requirements.txt
-````
-
-### 2️⃣ Configure Environment
-
-```bash
-cp .env.example .env
-# Edit .env with your project details (e.g., API keys, repo paths)
+```
+google-genai>=0.2.0
+google-cloud-aiplatform>=1.38.0
+python-dotenv>=1.0.0
 ```
 
-### 3️⃣ (Optional) Authenticate with Google Cloud
+## Setup
 
-If your MCP setup uses ADK or AlloyDB:
+```bash
+pip install google-genai google-cloud-aiplatform python-dotenv
+```
+
+Create a `.env` file:
+
+```env
+GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_CLOUD_LOCATION=us-central1
+MODEL_NAME=gemini-2.5-flash-exp
+```
 
 ```bash
 gcloud auth application-default login
 ```
 
----
+## Usage
 
-## ▶️ Usage
-
-### Analyze a File for Bugs
+**Demo** (creates and analyzes a sample file):
 
 ```bash
-python bug_assistant.py --file path/to/code.py
+python bug_assistant.py
 ```
 
-### Start an Interactive Debugging Session
+**Analyze a specific file**:
 
 ```bash
-python bug_assistant.py --interactive
+python bug_assistant.py --file sample_buggy_code.py
 ```
 
-### Analyze an Entire Directory
+**Analyze a directory** (all `*.py` files recursively):
 
 ```bash
 python bug_assistant.py --directory ./src
 ```
 
----
-
-## 🧩 MCP Tools Used
-
-| Tool Name      | Description                                                  |
-| -------------- | ------------------------------------------------------------ |
-| `analyze_code` | Performs static code analysis and identifies logical issues  |
-| `detect_bugs`  | Detects potential bugs and assigns severity levels           |
-| `suggest_fix`  | Generates fix recommendations using contextual reasoning     |
-| `apply_patch`  | Creates and applies `.patch` files directly to your codebase |
-
----
-
-## 📂 Output
-
-| File / Folder          | Description                                             |
-| ---------------------- | ------------------------------------------------------- |
-| `reports/`             | Detailed bug reports and summaries                      |
-| `patches/`             | Generated patch files (`.patch`) for direct application |
-| `logs/`                | Execution traces and debugging logs                     |
-| `fix_suggestions.json` | AI-generated fix recommendations with explanations      |
-
-Example output snippet:
-
-```
-[Bug Detected] Variable 'userData' may be undefined in main.py:42
-[Severity] High
-[Suggested Fix] Initialize 'userData' before first use.
-[Patch] patches/main_fix_001.patch
-```
-
----
-
-## 🧱 Architecture
-
-```
-Source Code
-    ↓
-MCP Tools Layer (Analyze → Detect → Suggest → Patch)
-    ↓
-ADK Agent (Reasoning & Orchestration)
-    ↓
-Developer / CI System
-```
-
-**Flow Explanation:**
-
-1. The agent analyzes the code using MCP’s static and dynamic analysis tools.
-2. It detects bug patterns and suggests fixes with reasoning.
-3. Optionally, it can auto-generate `.patch` files and apply them.
-4. The workflow can integrate with version control (e.g., GitHub Actions).
-
----
-
-## ☁️ Optional: Cloud Run Deployment
-
-Containerize and deploy the assistant to Google Cloud Run:
+**Custom output path**:
 
 ```bash
-gcloud builds submit --tag gcr.io/$GOOGLE_CLOUD_PROJECT/agent-c
-gcloud run deploy agent-c \
-  --image gcr.io/$GOOGLE_CLOUD_PROJECT/agent-c \
-  --platform managed \
-  --allow-unauthenticated \
-  --region us-central1
+python bug_assistant.py --file sample_buggy_code.py --output outputs/my_report.json
 ```
 
-Then visit:
+**Simple test**:
+
+```bash
+python test_simple.py
+```
+
+## Workflow
 
 ```
-https://agent-c-<PROJECT_NUMBER>.us-central1.run.app
+Source file(s)
+    ↓
+analyze_file() — read file, detect language
+    ↓
+Gemini generate_content with tools
+    ↓
+Execute function calls → aggregate results
+    ↓
+Follow-up Gemini call → natural-language analysis
+    ↓
+generate_report() → JSON to outputs/bug_report.json
 ```
 
----
+## Output
 
-## 🔗 Resources
+Reports are saved as JSON with bug descriptions, severity levels, line numbers, and fix suggestions. A console summary is printed after each run.
 
-* [Google ADK Documentation](https://cloud.google.com/gen-app-builder/docs/adk)
-* [Model Context Protocol (MCP)](https://cloud.google.com/gen-app-builder/docs/mcp)
-* [Vertex AI Gemini](https://cloud.google.com/vertex-ai)
-* [Cloud Run Documentation](https://cloud.google.com/run/docs)
+## Environment Variables
 
----
+| Variable | Required | Default | Description |
+|----------|----------|---------|-------------|
+| `GOOGLE_CLOUD_PROJECT` | Yes | — | GCP project ID |
+| `GOOGLE_CLOUD_LOCATION` | No | `us-central1` | Vertex AI region |
+| `MODEL_NAME` | No | `gemini-2.5-flash-exp` | Gemini model |
 
-## 🎥 Watch the Demo Again
+## Video Walkthrough
 
-📺 **YouTube:** [https://youtu.be/4bjq91TVp-s](https://youtu.be/4bjq91TVp-s)
+[YouTube: MCP Bug Assistant Demo](https://youtu.be/4bjq91TVp-s)
+
+## Tech Stack
+
+Python 3.10+, `google-genai`, `ast`, `pathlib`, `argparse`

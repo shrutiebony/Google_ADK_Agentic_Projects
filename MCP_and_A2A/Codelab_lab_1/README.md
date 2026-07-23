@@ -1,92 +1,113 @@
-### Currency Agent — MCP + A2A Integration
+# Codelab 1 — Currency Agent (MCP + A2A)
 
-**Currency Agent** is an intelligent AI agent built using **Google ADK**, **FastMCP**, and the **A2A Protocol**.
-It can fetch **real-time currency exchange rates** via an MCP tool and expose itself as an **A2A server**, enabling seamless communication with other agents or clients.
+An intelligent currency conversion agent built with **Google ADK**, **FastMCP**, and the **A2A Protocol**. It fetches real-time exchange rates via an MCP tool and exposes itself as an A2A server for agent-to-agent communication.
 
+## What It Does
 
----
+Answers questions like *"How much is 100 USD in CAD?"* by:
 
-##### Overview
+1. Connecting to an external **FastMCP server** that exposes a `get_exchange_rate` tool (Frankfurter API)
+2. Using **Gemini 2.5 Flash** via ADK to reason about currency conversion queries
+3. Exposing the agent as an **A2A server** so other agents can call it
 
-This project demonstrates how to:
+## Architecture
 
-* Build an **MCP (Model Context Protocol) server** using **FastMCP**.
-* Deploy the MCP server to **Google Cloud Run**.
-* Create a **currency-conversion AI agent** using **Google ADK** and **Gemini**.
-* Expose the agent via the **A2A Protocol** to allow agent-to-agent communication.
-* Test the A2A interface using an **A2AClient**.
+```
+[External FastMCP Server]          [currency_agentic_system]
+  get_exchange_rate tool    ←──   MCPToolset (Streamable HTTP)
+  http://127.0.0.1:8080/mcp         LlmAgent (gemini-2.5-flash)
+                                         │
+                                         ▼
+                                   to_a2a() → A2A server :10000
+                                         │
+                                         ▼
+                                   test_client.py (A2AClient)
+```
 
-The agent retrieves live exchange rates and answers questions like:
+## Key Files
 
-> “How much is 100 USD in CAD?”
+| File | Description |
+|------|-------------|
+| `currency_agentic_system/agent.py` | Defines `root_agent` (LlmAgent) and `a2a_app = to_a2a(...)` |
+| `currency_agentic_system/test_client.py` | A2A client — single-turn and multi-turn tests |
+| `currency_agentic_system/__init__.py` | Package init |
 
----
+## Agent Details
 
-##### Architecture
+- **Model:** `gemini-2.5-flash`
+- **MCP connection:** `StreamableHTTPConnectionParams` → `MCP_SERVER_URL`
+- **A2A port:** `A2A_PORT` (default `10000`)
+- **Exports:** `root_agent`, `a2a_app`
 
-1. **FastMCP Server**
-   Exposes a lightweight tool `get_exchange_rate` that fetches real-time currency data from the Frankfurter API.
+## Prerequisites
 
-2. **ADK Agent**
-   Uses Gemini (`gemini-2.5-flash`) and the MCP tool to handle currency conversion queries.
+- External **FastMCP MCP server** exposing `get_exchange_rate` on port 8080 (from the Google Codelab; server source is not included in this repo)
+- `google-adk`, `a2a-sdk`, `python-dotenv`
 
-3. **A2A Protocol**
-   Converts the agent into a fully discoverable and callable service through `to_a2a()`.
+## Setup
 
-4. **Testing**
-   The `test_client` script uses the **A2A Python SDK** to send messages and verify responses.
+```bash
+pip install google-adk a2a-sdk python-dotenv httpx
+```
 
----
+Create a `.env` file:
 
-##### Features
+```env
+MCP_SERVER_URL=http://127.0.0.1:8080/mcp
+A2A_PORT=10000
+```
 
-**MCP Integration:** Real-time API calls via FastMCP tools.
-**Gemini-Powered Reasoning:** Uses Google ADK for LLM orchestration.
-**Cloud Run Ready:** Easily deploy the MCP server in a scalable environment.
-**A2A Interoperability:** Connect and collaborate with other agents over open standards.
-**Testable Setup:** Includes A2A client test suite to validate responses.
+## Usage
 
----
+### 1. Start the MCP server
 
-##### Workflow Summary
+Run the external FastMCP server from the codelab (port 8080).
 
-1. Set up dependencies and environment variables (`.env` file).
-2. Run the local MCP server to expose the `get_exchange_rate` tool.
-3. Deploy the server to Cloud Run (optional).
-4. Start the ADK agent connected to the MCP server.
-5. Expose the agent as an A2A server.
-6. Verify with the **A2A Agent Card** endpoint.
-7. Test communication with the **A2A client**.
+### 2. Start the A2A agent
 
----
+```bash
+cd Codelab_lab_1
+uvicorn currency_agentic_system.agent:a2a_app --host 0.0.0.0 --port 10000
+```
 
-##### Endpoints
+### 3. Verify the agent card
 
-* **MCP Server:** `http://127.0.0.1:8080/mcp`
-* **A2A Agent Card:**
+```
+http://127.0.0.1:10000/.well-known/agent.json
+```
 
-  * `http://127.0.0.1:10000/.well-known/agent.json`
-  * or `http://127.0.0.1:10000/.well-known/agent-card.json`
+### 4. Run tests
 
----
+```bash
+python -m currency_agentic_system.test_client
+```
+
+The test client sends currency queries and multi-turn follow-ups (e.g., "in GBP").
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MCP_SERVER_URL` | `http://127.0.0.1:8080/mcp` | MCP tool server endpoint |
+| `A2A_PORT` | `10000` | A2A server port |
+| `AGENT_URL` | `http://localhost:10000` | Test client target URL |
+
+Gemini/Vertex credentials via `GOOGLE_API_KEY` or Application Default Credentials.
+
+## Endpoints
+
+| Endpoint | URL |
+|----------|-----|
+| MCP Server | `http://127.0.0.1:8080/mcp` |
+| A2A Agent Card | `http://127.0.0.1:10000/.well-known/agent.json` |
 
 ## Concepts Demonstrated
 
-* Model Context Protocol (MCP)
-* Google ADK & Gemini API usage
-* Agent2Agent (A2A) Protocol
-* Cloud Run Deployment
-* Agent Interoperability
+- Model Context Protocol (MCP) tool integration
+- Google ADK and Gemini API usage
+- Agent-to-Agent (A2A) Protocol
+- Agent interoperability across services
 
----
+## Tech Stack
 
-##### Tech Stack
-
-* **Language:** Python 3.12
-* **Frameworks:** FastMCP, Google ADK
-* **AI Model:** Gemini 2.5 Flash
-* **Deployment:** Google Cloud Run
-* **Protocol:** Agent2Agent (A2A)
-* **Testing:** A2A Python SDK
-
-
+Python 3.12, FastMCP, Google ADK, Gemini 2.5 Flash, A2A Python SDK

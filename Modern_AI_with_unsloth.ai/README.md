@@ -1,221 +1,89 @@
-### Modern AI Workflows with Unsloth.ai
+# Modern AI Workflows with Unsloth.ai
 
-A Multi-Notebook Exploration of Fine-Tuning, Reinforcement Learning, and Continued Pretraining
+A hands-on notebook series demonstrating modern LLM training techniques using [Unsloth.ai](https://github.com/unslothai/unsloth). Each notebook covers a different training paradigm with reproducible end-to-end workflows designed for Google Colab.
 
-This repository contains a complete series of hands-on Colab notebooks demonstrating modern LLM training techniques using Unsloth.ai.
-Each notebook focuses on a different training paradigm—fine-tuning, LoRA, RL from Preferences, GRPO reasoning RL, and continued pretraining—and includes:
+## Notebooks
 
-A reproducible end-to-end workflow
+| # | Notebook | Topic | Model | Dataset |
+|---|----------|-------|-------|---------|
+| 1 | `1_Full_Finetuning_with_a_small_model.ipynb` | Full supervised fine-tuning (SFT) | `unsloth/smollm2-135m` | `tatsu-lab/alpaca` (500 samples) |
+| 2 | `2_LORA_parameter_efficient_Finetune.ipynb` | LoRA parameter-efficient fine-tuning | `unsloth/smollm2-135m` | `tatsu-lab/alpaca` (500 samples) |
+| 3 | `3_ReinforcementLearning_Using_Dataset(DPO_RLHF).ipynb` | DPO / preference alignment | `HuggingFaceTB/SmolLM2-135M-Instruct` | `HuggingFaceH4/ultrafeedback_binarized` |
+| 4 | `4_ReinforcementLearning_with_GRPO.ipynb` | GRPO reasoning RL | `HuggingFaceTB/SmolLM2-135M-Instruct` | `openai/gsm8k` (800 math problems) |
+| 5 | `5_ContinuedPretraining_HindiLanguage.ipynb` | Continued pretraining for Hindi | `unsloth/Qwen2-0.5B-bnb-4bit` | `allenai/c4` (Hindi subset) |
 
-Dataset preparation notes
+## What Each Notebook Covers
 
-Input/output examples
+### 1. Full Finetuning (SFT)
 
-Training artifacts (logs, charts, checkpoints, evaluations)
+Trains a small model end-to-end. Covers tokenization, chat templates, training loop, inference, and before/after comparisons.
 
-#### 1. Project Purpose
+### 2. LoRA Finetuning
 
-This repository serves as a practical guide for learning and demonstrating:
+Converts the SFT task to parameter-efficient fine-tuning (rank=16, 4-bit). Demonstrates dramatic improvements in memory usage, training speed, and deployability compared to full SFT.
 
-Supervised fine-tuning (SFT) on small models
+### 3. RL with Preferences (DPO)
 
-LoRA parameter-efficient finetuning (PEFT)
+Uses a dataset with preferred and rejected responses. Covers reward signals, stability techniques, and preference accuracy tracking.
 
-Reinforcement learning with human/AI preferences
+### 4. GRPO Reasoning RL
 
-GRPO-style reasoning RL for chain-of-thought tasks
+Uses problem-only datasets where the model generates reasoning traces. GRPO optimizes correctness and rationale clarity with custom numeric reward functions.
 
-Continued pretraining (CPT) for new languages or niche domains
+### 5. Continued Pretraining (CPT)
 
-All techniques are implemented using Unsloth, enabling fast training on consumer GPUs or Colab accelerators.
+Extends model vocabulary and knowledge for Hindi. Covers corpus cleaning, tokenization, perplexity improvements, and behavior changes.
 
-Each notebook is structured for academic submission, industry demonstration, or reuse in future projects.
+## Workflow (Each Notebook)
 
-#### 2. Contents Overview
-/colab-full-finetune/
-    notebook.ipynb
-    dataset_notes.md
-    results/
-    video/
+```
+Install deps (unsloth, trl, transformers, datasets, bitsandbytes)
+    → Load model (FastLanguageModel.from_pretrained, 4-bit)
+    → Attach LoRA adapters (notebooks 2–5)
+    → Load/preprocess dataset
+    → Train (SFTTrainer / DPOTrainer / GRPOTrainer)
+    → Inference smoke tests
+    → Export to Hugging Face Hub
+```
 
- /colab-lora-finetune/
- /colab-rl-preferences/
- /colab-grpo-reasoning/
- /colab-continued-pretraining/
- /extras/
-    export_to_ollama_notes.md
-    safety_prompts.md
+## How to Run
 
-#### 3. Notebook Summaries
-##### Notebook A: Full Finetuning (SFT)
+1. Open any `.ipynb` in **Google Colab** with a **GPU runtime** (T4 recommended)
+2. Set Colab secrets:
+   - `HGFaceApi` — Hugging Face token
+   - W&B token (notebooks 2–5)
+3. Run cells sequentially
 
-Trains a small or quantized model end-to-end
+No local `requirements.txt` — dependencies are installed inline via `%pip` in each notebook.
 
-Example base models: smolLM2 135M, Gemma 3 1B Unsloth 4-bit
+## Tech Stack
 
-Demonstrates tokenization, chat templates, training loop, and inference
+| Component | Technology |
+|-----------|-----------|
+| Framework | Unsloth (`FastLanguageModel`), TRL (`SFTTrainer`, `DPOTrainer`, `GRPOTrainer`) |
+| Models | SmolLM2-135M, Qwen2-0.5B (4-bit quantized) |
+| Training | LoRA (PEFT), 4-bit quantization, bitsandbytes |
+| Tracking | Weights & Biases (notebooks 2–5) |
+| Platform | Google Colab (T4 GPU) |
+| Export | Hugging Face Hub |
 
-Includes evaluation samples and before/after comparisons
+## Models Used
 
-##### Notebook B: LoRA Finetuning
+| Model | Best For |
+|-------|----------|
+| `unsloth/smollm2-135m` | Full SFT, LoRA |
+| `HuggingFaceTB/SmolLM2-135M-Instruct` | DPO, GRPO |
+| `unsloth/Qwen2-0.5B-bnb-4bit` | Continued pretraining |
+| Gemma 3 1B, Llama 3, Mistral 7B, Phi-3, Qwen2 7B | LoRA and RL (alternatives) |
 
-Converts the SFT task to a parameter-efficient approach
+## Evaluation Guidelines
 
-Shows dramatic improvement in:
+- **Quality:** Qualitative before/after comparisons, reward curves (RL), preference accuracy, reasoning correctness (GRPO)
+- **Efficiency:** Accelerator type (T4/L4/A100), runtime, memory metrics, LoRA rank and hyperparameters
+- **Comparisons:** Full SFT vs LoRA, SFT vs RL vs GRPO, CPT before/after behavior
 
-memory usage
+## References
 
-training speed
-
-deployability
-
-Includes a direct comparison with Notebook A
-
-##### Notebook C: RL with Preferences (RLAIF / DPO-like)
-
-Uses a dataset containing:
-
-input
-
-preferred response
-
-rejected response
-
-Demonstrates:
-
-reward signals
-
-stability tricks
-
-preference accuracy tracking
-
-Includes qualitative and quantitative comparisons
-
-##### Notebook D: GRPO Reasoning RL
-
-Uses problem-only datasets
-
-Model generates reasoning traces (“chain of thought”)
-
-GRPO optimizes correctness and rationale clarity
-
-Includes:
-
-acceptance criteria
-
-reward shapes
-
-reasoning behavior changes
-
-Notebook E — Continued Pretraining (CPT)
-
-Extends the model’s vocabulary and knowledge on:
-
-new languages
-
-niche technical domains
-
-Covers:
-
-corpus cleaning
-
-tokenization notes
-
-perplexity improvements
-
-behavior changes before/after CPT
-
-#### 4. Models Used (Open Weights)
-
-You may use the following models depending on notebook type:
-
-smolLM2 (135M) — ideal for full SFT
-
-Gemma 3 1B Unsloth 4bit — fast + capable
-
-Llama 3, Llama 3.1 (8B) — LoRA & RL
-
-Mistral 7B / NeMo 12B
-
-Gemma 2 (2B/9B)
-
-Phi-3 / Phi-3.5
-
-Qwen2 7B
-
-TinyLlama
-
-Smaller models are preferred for full fine-tuning; larger ones suit LoRA or RL.
-
-##### 5. Dataset Requirements
-
-Each notebook includes a dataset_notes.md file describing:
-
-Source and license
-
-Schema and formatting
-
-Preprocessing steps
-
-Chat templates (if applicable)
-
-Metadata for preference datasets (preferred vs. rejected outputs)
-
-Reward definitions for GRPO/RL
-
-Corpus preparation notes for CPT
-
-##### 6. Deliverables Checklist
-
-Every folder in this repo contains:
-
-✓ A working Colab notebook
-
-✓ Dataset notes or corpus preparation explanation
-
-✓ At least 3 before/after qualitative examples
-
-✓ Training logs, charts, or screenshots in results/
-
-✓ A video walkthrough detailing:
-
-#### Problem framing
-
-Dataset explanation
-
-Code tour
-
-Training or log replay
-
-Inference demonstrations
-
-Summary of findings
-
-#### 7. Evaluation Guidelines
-Quality Metrics
-
-Qualitative improvements
-
-Reward curves (RL)
-
-Preference accuracy
-
-Reasoning correctness (GRPO)
-
-Optional: BLEU/ROUGE/F1 depending on task
-
-Efficiency Notes
-
-Accelerator used (T4/L4/A100)
-
-Runtime and memory metrics
-
-LoRA rank and hyperparameters
-
-Comparisons
-
-Full SFT vs. LoRA
-
-SFT vs. RL vs. GRPO
-
-CPT before/after behavior
+- [Unsloth GitHub](https://github.com/unslothai/unsloth)
+- [Unsloth Documentation](https://docs.unsloth.ai/)
+- [TRL (Transformer Reinforcement Learning)](https://github.com/huggingface/trl)

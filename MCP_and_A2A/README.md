@@ -1,95 +1,66 @@
-## MCP and A2A Codelab Assignment
+# MCP and A2A Codelabs
 
-This repository contains the implementation and deliverables for **three Google Codelabs** focusing on:
-- **ADK (Agent Development Kit)**
-- **MCP (Message Communication Protocol)**
-- **A2A (Agent-to-Agent)** communication
+Three Google Codelab implementations demonstrating **Google ADK**, **MCP (Model Context Protocol)**, and **A2A (Agent-to-Agent)** communication for building, deploying, and orchestrating multi-agent systems.
 
-These codelabs collectively demonstrate how to **create, deploy, and manage multi-agent systems** using the **Google Agent Engine** and **A2A Action Engine**.
+## Codelabs
 
----
+| Lab | Folder | Description |
+|-----|--------|-------------|
+| 1 | [Codelab_lab_1](./Codelab_lab_1/) | Currency Agent — MCP tool integration + A2A server |
+| 2 | [Codelab_lab_2](./Codelab_lab_2/) | Multi-Agent Image Scoring — ADK pipeline + A2A + Agent Engine |
+| 3 | [Codelab_lab_3](./Codelab_lab_3/) | Purchasing Concierge — A2A orchestration across Cloud Run agents |
 
-##### Table of Contents
+## Repository Structure
 
-- [Overview](#-overview)
-- [Codelabs Included](#-codelabs-included)
-  - [Codelab 1 – Multi-Agent System with ADK and A2A Protocol](#codelab-1--multi-agent-system-with-adk-and-a2a-protocol)
-  - [Codelab 2 – Getting Started with ADK, MCP, and A2A](#codelab-2--getting-started-with-adk-mcp-and-a2a)
-  - [Codelab 3 – Getting Started with A2A Action Engine](#codelab-3--getting-started-with-a2a-action-engine)
-- [Repository Structure](#-repository-structure)
-- [Setup & Execution](#-setup--execution)
-- [Artifacts & Deliverables](#-artifacts--deliverables)
-- [Video Walkthrough](#-video-walkthrough)
-- [Future Enhancements](#-future-enhancements)
-- [License](#-license)
+```
+MCP_and_A2A/
+├── Codelab_lab_1/
+│   └── currency_agentic_system/     # ADK agent consuming MCP tools via A2A
+├── Codelab_lab_2/
+│   └── multi_agentic_system/        # Image generation + scoring pipeline
+│       ├── image_scoring/           # Core agent package
+│       ├── image_scoring_adk_a2a_server/  # Remote A2A wrapper
+│       └── testclient/              # Agent Engine test client
+└── Codelab_lab_3/
+    ├── purchasing_concierge/        # Orchestrator agent
+    ├── remote_seller_agents/
+    │   ├── burger_agent/            # CrewAI A2A server
+    │   └── pizza_agent/             # LangGraph A2A server
+    ├── purchasing_concierge_ui.py   # Gradio chat UI
+    └── deploy_to_agent_engine.py    # Agent Engine deployment
+```
 
----
+## Concepts Demonstrated
 
-##### Overview
+- **ADK (Agent Development Kit)** — Creating and managing agents with sub-agent pipelines
+- **MCP (Model Context Protocol)** — Exposing external tools to agents via standardized protocol
+- **A2A (Agent-to-Agent)** — Secure, structured message exchange between independent agents
+- **Agent Engine** — Cloud deployment and execution of ADK agents on Vertex AI
+- **Multi-framework interoperability** — CrewAI, LangGraph, and ADK agents communicating via A2A
 
-The project demonstrates hands-on experience with:
-- Building **autonomous agents** using Google’s **ADK (Agent Development Kit)**
-- Establishing **A2A (Agent-to-Agent)** communication channels
-- Implementing **MCP (Message Communication Protocol)** for reliable agent messaging
-- Using the **A2A Action Engine** for orchestration and action-based workflows
+## Shared Prerequisites
 
-Each codelab directory includes:
-- Source code and configuration files  
-- Execution logs, results, and screenshots  
-- A short documentation on architecture and workflow  
+- Python 3.10+ (3.12 for Codelab 3 seller agents)
+- Google Cloud project with billing enabled
+- Vertex AI API enabled
+- Application Default Credentials:
+  ```bash
+  gcloud auth application-default login
+  ```
 
----
+## Getting Started
 
-##### Codelabs Included
+Each codelab is self-contained. Navigate to the lab folder and follow its README:
 
-##### **Codelab 1 – Multi-Agent System with ADK and A2A Protocol**
+```bash
+cd Codelab_lab_1
+# Follow Codelab_lab_1/README.md
+```
 
-**Objective:**  
-Build and deploy a multi-agent system using the **Agent Development Kit (ADK)** and enable **Agent-to-Agent (A2A)** communication through the Agent Engine.
+## References
 
-**Key Concepts:**
-- Multi-Agent System Architecture  
-- ADK setup and registration  
-- A2A communication initialization and verification  
-
-**Artifacts:**
-- `agents/` – agent configuration files  
-- `src/` – source code for deployed agents  
-- `logs/` – execution and deployment logs  
-- `screenshots/` – proof of execution  
-
----
-
-##### **Codelab 2 – Getting Started with ADK, MCP, and A2A**
-
-**Objective:**  
-Learn to implement **MCP (Message Communication Protocol)** for agent-based communication and create a simple **Currency Exchange Agent**.
-
-**Key Concepts:**
-- Understanding the MCP messaging lifecycle  
-- Building a basic Currency Exchange agent  
-- Integrating MCP with ADK and A2A  
-
-**Artifacts:**
-- `CurrencyAgent/` – source code and configuration  
-- `execution_logs/` – message exchange logs  
-- `screenshots/` – message flow and execution proof  
-
----
-
-##### **Codelab 3 – Getting Started with A2A Action Engine**
-
-**Objective:**  
-Implement a **Purchasing Concierge** using the **A2A Action Engine**, simulating intelligent decision-making and inter-agent task orchestration.
-
-**Key Concepts:**
-- A2A Action Engine fundamentals  
-- Action request and response cycles  
-- Multi-agent collaboration and task handling  
-
-**Artifacts:**
-- `action_definitions/` – A2A action definitions  
-- `src/` – concierge and task agents  
-- `results/` – test logs and performance outputs  
-
-
+- [Google ADK Documentation](https://google.github.io/adk-docs/)
+- [A2A Protocol](https://google.github.io/A2A/)
+- [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
+- [Create Multi-Agents with ADK & A2A Codelab](https://codelabs.developers.google.com/codelabs/create-multi-agents-adk-a2a)
+- [Vertex AI Agent Engine](https://cloud.google.com/vertex-ai/generative-ai/docs/agent-engine/overview)
